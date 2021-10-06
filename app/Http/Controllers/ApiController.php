@@ -26,6 +26,9 @@ class ApiController extends Controller
         return $repositories['original']['language_list'];
     }
     
+    // Precondition: internet is working well and github server doesn't down.
+    // Postcondition: return array contain contian pure response fetched from api,
+    // and array have all language and their repos. 
     public function getDataGithub()
     {
         $date = now()->subDays(30)->toDateString();
@@ -47,6 +50,8 @@ class ApiController extends Controller
         }
     }
 
+    // Precondition: list element should be an array.
+    // Postcondition: return array contian needed objects formation. 
     public function format_response($list)  {
         $new_list = [];
         foreach ($list as $key => $value) {
@@ -59,6 +64,11 @@ class ApiController extends Controller
         return $new_list;
     }
 
+    // Precondition: target can be null or array,
+    // and list should be an arrays and not null,
+    // and doesn't have null elements in language key.
+    // Postcondition: return cleaned array of nulls,
+    // or return needed repos for filteration.   
     public function filtering($target, $list)
     {
         $collection = collect($list);
@@ -69,6 +79,9 @@ class ApiController extends Controller
         }
     }
 
+    // Precondition: list should be an array,
+    // and contain duplication element to use it.
+    // Postcondition: return new array have unique values.
     public function set_of_language($list)
     {
         $new_list = [];
@@ -78,6 +91,10 @@ class ApiController extends Controller
         return $new_list;
     }
 
+    // Precondition: list and target not have a null elementm,
+    // and both are arrays and target should have unique element.
+    // Postcondition: return new array with properties for every language,
+    // such as language name and number of repos and repos use this language. 
     public function list_of_repos($list, $target) {
         $new_list = [];
         for ($i = 0; $i < count($target); $i++) {
