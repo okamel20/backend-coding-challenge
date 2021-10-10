@@ -10,26 +10,29 @@ class ApiController extends Controller
     public function __construct() {
     }
 
+    // Precondition: internet is working well and github server doesn't down.
+    // Postcondition: return array contain contian pure response fetched from api,
     public function repositories()
     {
-        $repositories =  $this->getDataGithub();
-        $repositories =  json_encode($repositories);
-        $repositories =  json_decode($repositories,true);
-        return $repositories['original']['response_list'];
+        $date = now()->subDays(30)->toDateString();
+        $client = new GuzzleClient;
+        try {
+            $res = $client->request('GET', 'https://api.github.com/search/repositories?q=created:>'.$date.'&sort=stars&order=desc&per_page=100');
+            if ($res->getStatusCode() == 200) {
+                 $response_list = json_decode($res->getBody(), true);
+                 return response()->json(['success' => 'success','response_list' => $response_list], 200);
+            } else {
+                return response()->json(['error' => 'invalid'], 401);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e], 401);
+        }
     }
 
-    public function languages()
-    {
-        $repositories =  $this->getDataGithub();
-        $repositories =  json_encode($repositories);
-        $repositories =  json_decode($repositories,true);
-        return $repositories['original']['language_list'];
-    }
-    
     // Precondition: internet is working well and github server doesn't down.
     // Postcondition: return array contain contian pure response fetched from api,
     // and array have all language and their repos. 
-    public function getDataGithub()
+    public function languages()
     {
         $date = now()->subDays(30)->toDateString();
         $client = new GuzzleClient;
@@ -41,12 +44,12 @@ class ApiController extends Controller
                  $list_without_null_language =  $this->filtering(null, $customized_list);
                  $unique_list =  $this->set_of_language($list_without_null_language);
                  $language_list =  $this->list_of_repos($list_without_null_language, $unique_list);
-                 return response(['success' => 'success','response_list' => $response_list,'language_list' => $language_list], 200);
+                 return response()->json(['success' => 'success','language_list' => $language_list], 200);
             } else {
-                return response(['error' => 'invalid'], 401);
+                return response()->json(['error' => 'invalid'], 401);
             }
         } catch (\Exception $e) {
-            return response(['error' => $e], 401);
+            return response()->json(['error' => $e], 401);
         }
     }
 
